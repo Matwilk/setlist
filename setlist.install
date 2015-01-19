@@ -1,0 +1,144 @@
+<?php
+/**
+ * Implements hook_schema().
+ */
+function setlist_schema() {
+
+  $schema = array();
+
+  $schema['setlist_musicians'] = array(
+    'description' => 'The base table for the Musician entity',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary key of the Musician entity',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'Musician name.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  $schema['setlist_instruments'] = array(
+    'description' => 'The base table for the Instrument entity',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary key of the Instrument entity',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'Instrument name.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  $schema['setlist_songs'] = array(
+    'description' => 'The base table for the Songs entity',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary key of the Songs entity',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'Song name.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'genre' => array(
+        'description' => 'Song genre.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => FALSE,
+      ),
+      'year' => array(
+        'year' => 'Song year.',
+        'type' => 'int',
+        'length' => 5,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  return $schema;
+}
+ 
+/**
+ * Implements hook_install().
+ */
+function setlist_install() {
+  if (!field_info_field('field_player')) {
+    field_info_cache_clear();
+
+    $field = array(
+      'field_name' => 'field_player',
+      'type' => 'setlist_player',
+      'cardinality' => -1
+    );
+    field_create_field($field);
+    
+    $instance = array(
+      'field_name' => 'field_player',
+      'entity_type' => 'song',
+      'bundle' => 'song',
+      'label' => 'Player',
+      'required' => true,
+      'widget' => array(
+        'type' => 'setlist_player_widget'
+      ),
+      'settings' => array(
+        'target_type' => 'musician',
+        'handler_settings' => array('target_bundles' => NULL),
+      ),
+      'display' => array(
+        'default' => array('label' => 'inline', 'type' => 'setlist_player_formatter'),
+      ),
+    );
+
+    field_create_instance($instance);
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function setlist_uninstall() {
+  $field = array(
+    'field_name' => 'field_player',
+    'type' => 'setlist_player',
+    'cardinality' => -1
+  );
+
+  field_delete_field($field);
+}
+
+/**
+ * Implements hook_field_schema().
+ */
+function setlist_field_schema($field) {
+  
+  $columns = array(
+    'musician' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+    'instrument' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+  );
+  
+  return array(
+    'columns' => $columns,
+    'indexes' => array(),
+  );  
+}
