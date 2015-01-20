@@ -470,6 +470,7 @@ function setlist_player_field_validate($entity_type, $entity, $field, $instance,
 function setlist_form_alter(&$form, &$form_state, $form_id)
 {  
   if ($form_id == "song_form") {
+    
     $form['#validate'][] = '_song_form_validate';
     $delta = $form_state['field']['field_player']['und']['items_count'];
     $lang = $form['field_player']['#language'];
@@ -493,6 +494,13 @@ function setlist_form_alter(&$form, &$form_state, $form_id)
         
         $count++;
       }
+    }
+    else {
+      // delete the last delta
+      $max_delta = $form['field_player'][$lang]['#max_delta'];
+      unset($form['field_player'][$lang][$max_delta]);
+      $form['field_player'][$lang]['#max_delta'] = $max_delta-1;
+      
     }
     
     $form['field_player'][$lang]['add_more']['#access'] = FALSE;
