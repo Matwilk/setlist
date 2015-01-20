@@ -1,7 +1,4 @@
 <?php
-
-module_load_include('inc', 'setlist', 'setlist.entities');
-
 /**
  * Implements hook_entity_info().
  */
@@ -203,6 +200,101 @@ function setlist_songs() {
 }
 
 /**
+ * Access callback for song entities.
+ */
+function song_access_callback($op, $song = NULL, $account = NULL) {
+  if ($op == 'view' || $op == 'update' || $op == 'create' || $op == 'delete') {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Access callback for musician entities.
+ */
+function musician_access_callback($op, $musician = NULL, $account = NULL) {
+  if ($op == 'view' || $op == 'update' || $op == 'create' || $op == 'delete') {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Access callback for instrument entities.
+ */
+function instrument_access_callback($op, $instrument = NULL, $account = NULL) {
+  if ($op == 'view' || $op == 'update' || $op == 'create' || $op == 'delete') {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Extending the EntityAPIController for the Musician entity.
+ */
+class MusicianEntityController extends EntityAPIController {
+
+  public function buildContent($entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+
+    $build = parent::buildContent($entity, $view_mode, $langcode, $content);
+
+    // Our additions to the $build render array
+
+    return $build;
+  }
+}
+
+/**
+ * Extending the EntityAPIController for the Instrument entity.
+ */
+class InstrumentEntityController extends EntityAPIController {
+
+  public function buildContent($entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+
+    $build = parent::buildContent($entity, $view_mode, $langcode, $content);
+
+    // Our additions to the $build render array
+
+    return $build;
+  }
+}
+
+/**
+ * Extending the EntityAPIController for the Song entity.
+ */
+class SongEntityController extends EntityAPIController {
+
+  public function buildContent($entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+
+    $build = parent::buildContent($entity, $view_mode, $langcode, $content);
+
+    dpm($entity);
+    
+    // Our additions to the $build render array
+    $build['genre'] = array(
+      '#type' => 'markup',
+      '#markup' => check_plain($entity->genre),
+      '#prefix' => '<div class="song-genre">',
+      '#suffix' => '</div>',
+    );
+    $build['year'] = array(
+      '#type' => 'markup',
+      '#markup' => check_plain($entity->year),
+      '#prefix' => '<p>Year: ',
+      '#suffix' => '</p>',
+    );
+
+    return $build;
+  }
+}
+
+/**
  * Callback function for displaying the individual song page
  */
 function setlist_view_song($id) {
@@ -244,6 +336,48 @@ function setlist_view_instrument($id) {
   $output = entity_view('instrument', array($instrument));
   
   return $output;
+
+}
+
+/**
+ * Song entity class extending the Entity class
+ */
+class SongEntity extends Entity {
+
+  /**
+   * Change the default URI from default/id to song/id
+   */
+  protected function defaultUri() {
+    return array('path' => 'song/' . $this->identifier());
+  }
+
+}
+
+/**
+ * Musician entity class extending the Entity class
+ */
+class MusicianEntity extends Entity {
+
+  /**
+   * Change the default URI from default/id to musician/id
+   */
+  protected function defaultUri() {
+    return array('path' => 'musician/' . $this->identifier());
+  }
+
+}
+
+/**
+ * Instrument entity class extending the Entity class
+ */
+class InstrumentEntity extends Entity {
+
+  /**
+   * Change the default URI from default/id to instrument/id
+   */
+  protected function defaultUri() {
+    return array('path' => 'instrument/' . $this->identifier());
+  }
 
 }
 
@@ -471,10 +605,15 @@ function setlist_form_alter(&$form, &$form_state, $form_id)
 {  
   if ($form_id == "song_form") {
     $form['#validate'][] = '_song_form_validate';
+    dpm($form);
+    dpm($form_state);
+    dpm($form['field_player']);
     $delta = $form_state['field']['field_player']['und']['items_count'];
     $lang = $form['field_player']['#language'];
     
     if ($delta < 1) {
+      dpm('Blah');
+
       $player_field = $form['field_player'];  
       $fieldUnd = $player_field[$lang][0];
       
@@ -491,8 +630,12 @@ function setlist_form_alter(&$form, &$form_state, $form_id)
           array_push($form['field_player'][$lang], $fieldUnd);
         }
         
+        dpm($count);
         $count++;
       }
+
+      dpm($fieldUnd);      
+      dpm($form);
     }
     
     $form['field_player'][$lang]['add_more']['#access'] = FALSE;
