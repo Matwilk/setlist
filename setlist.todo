@@ -1,7 +1,9 @@
  - instrument in player field is storing as string representation of index of list as found when loading list of instruments.  However, if list changes (someone removed/added) then link no longer accurate?
  - global variable for things like instrument and name list 
- - add set list node itself
+ - proper view of setlist
  - allow ordering of songs within the setlist
  - format forms better
  - ideally use proper custom field behaviour rather than suppressing the add more behaviour
- - does uninstall work cleanly ?
+ - clean uninstall?
+ - user permissions/access?
+ 
