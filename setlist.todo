@@ -2,3 +2,6 @@
  - global variable for things like instrument and name list 
  - add set list node itself
  - allow ordering of songs within the setlist
+ - format forms better
+ - ideally use proper custom field behaviour rather than suppressing the add more behaviour
+ - does uninstall work cleanly ?
