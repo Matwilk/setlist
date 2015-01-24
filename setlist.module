@@ -3,82 +3,6 @@
 module_load_include('inc', 'setlist', 'setlist.entities');
 
 /**
- * Implements hook_entity_info().
- */
-function setlist_entity_info() {
-
-  $info = array();
-
-  $info['musician'] = array(
-    'label' => t('Musician'),
-    'base table' => 'setlist_musicians',
-    'access callback' => 'musician_access_callback',
-    'entity keys' => array(
-      'id' => 'id',
-      'label' => 'name',
-    ),
-    'entity class' => 'MusicianEntity',
-    'controller class' => 'MusicianEntityController',
-    'module' => 'setlist',
-    'uri callback' => 'entity_class_uri',
-    'views controller class' => 'EntityDefaultViewsController',
-    'admin ui' => array(
-      'path' => 'admin/musicians',
-      'controller class' => 'EntityDefaultUIController',
-    ),
-  );
-
-  $info['instrument'] = array(
-    'label' => t('Instrument'),
-    'base table' => 'setlist_instruments',
-    'access callback' => 'instrument_access_callback',
-    'entity keys' => array(
-      'id' => 'id',
-      'label' => 'name',
-    ),
-    'entity class' => 'InstrumentEntity',
-    'controller class' => 'InstrumentEntityController',
-    'module' => 'setlist',
-    'uri callback' => 'entity_class_uri',
-    'views controller class' => 'EntityDefaultViewsController',
-    'admin ui' => array(
-      'path' => 'admin/instruments',
-      'controller class' => 'EntityDefaultUIController',
-    ),
-  );
-
-  $info['song'] = array(
-    'label' => t('Song'),
-    'base table' => 'setlist_songs',
-    'entity keys' => array(
-      'id' => 'id',
-      'label' => 'name',
-    ),
-    'entity class' => 'SongEntity',
-    'controller class' => 'SongEntityController',
-    'module' => 'setlist',
-    'access callback' => 'song_access_callback',
-    'uri callback' => 'entity_class_uri',
-    'admin ui' => array(
-      'path' => 'admin/songs',
-      'controller class' => 'EntityDefaultUIController',
-    ),
-    'views controller class' => 'EntityDefaultViewsController',
-    'fieldable' => TRUE,
-    'bundles' => array(
-      'song' => array(
-        'label' => t('Song'),
-        'admin' => array(
-          'path' => 'admin/songs',
-        ),
-      ),
-    ),
-  );
-
-  return $info;
-}
-
-/**
 * Implementation of hook_menu().
 */
 function setlist_menu() {
@@ -133,23 +57,13 @@ function setlist_menu() {
 function setlist_musicians() {
   $musicians = entity_load('musician', array(1));
 
-  if (!isset($musicians[1])) {
-    $entity = entity_create('musician', array('id' => 1));
-    $entity->name = t('Marcus');
-    $entity->save();
-    return 'Blah';
-  }
-  else {  
-    $list = entity_view('musician', $musicians);
-  
-    $output = array();
+  $list = entity_view('musician', $musicians);
 
-    foreach ($list['musician'] as $musician) {
-      $output[] = drupal_render($musician);
-    }
-  }
+  $output = array();
 
-  dpm($output);
+  foreach ($list['musician'] as $musician) {
+    $output[] = drupal_render($musician);
+  }
 
   return implode($output);
 }
@@ -179,27 +93,15 @@ function setlist_instruments() {
 function setlist_songs() {
   $songs = entity_load('song', array(1));
 
-  if (!isset($songs[1])) {
-    $entity = entity_create('song', array('id' => 1));
-    $entity->name = t('Durangs Hornpipe');
-    $entity->genre = t('Folk');
-    $entity->year = 1900;
-    $entity->save();
-    return 'Blah';
+  $list = entity_view('song', $songs);
+
+  $output = array();
+
+  foreach ($list['song'] as $song) {
+    $output[] = drupal_render($song);
   }
-  else {    
-    $list = entity_view('song', $songs);
-  
-    $output = array();
 
-    foreach ($list['song'] as $song) {
-      $output[] = drupal_render($song);
-    }
-
-    dpm($output);
-
-    return implode($output);
-  }
+  return implode($output);
 }
 
 /**
@@ -208,7 +110,6 @@ function setlist_songs() {
 function setlist_view_song($id) {
 
   $songs = entity_load('song', array($id));
-  dpm($songs);
   $song = $songs[$id];
 
   drupal_set_title($song->name);
@@ -505,4 +406,49 @@ function setlist_form_alter(&$form, &$form_state, $form_id)
     
     $form['field_player'][$lang]['add_more']['#access'] = FALSE;
   }
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function setlist_field_formatter_info() {
+  dpm('formatter blah');
+
+  return array(
+    'setlist_player_formatter' => array(
+      'label' => t('Default'),
+      'description' => t('Default formatter'),
+      'field types' => array('test_field'),
+      'settings' => array(
+        'musician_setting' => 'Musician: ',
+      ),
+    ),
+  );
+}
+
+function return_instrument($item)
+{
+    return $item->name;
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function setlist_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  $settings = $display['settings'];
+
+  switch ($display['type']) {
+    case 'setlist_player_formatter':
+      $instruments = entity_load('instrument', FALSE, NULL, TRUE);
+      $instrument_names = array_map("return_instrument", $instruments);
+
+      foreach ($items as $delta => $item) {
+	$name = $instrument_names[$item['instrument']];
+        $element[$delta] = array('#markup' => $item['musician'] . ', Instrument: ' . $name);
+      }
+      break;
+  }
+
+  return $element;
 }

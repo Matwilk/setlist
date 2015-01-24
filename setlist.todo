@@ -1,0 +1,4 @@
+ - instrument in player field is storing as string representation of index of list as found when loading list of instruments.  However, if list changes (someone removed/added) then link no longer accurate?
+ - global variable for things like instrument and name list 
+ - add set list node itself
+ - allow ordering of songs within the setlist

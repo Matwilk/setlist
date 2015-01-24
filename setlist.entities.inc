@@ -1,6 +1,82 @@
 <?php
 
 /**
+ * Implements hook_entity_info().
+ */
+function setlist_entity_info() {
+
+  $info = array();
+
+  $info['musician'] = array(
+    'label' => t('Musician'),
+    'base table' => 'setlist_musicians',
+    'access callback' => 'musician_access_callback',
+    'entity keys' => array(
+      'id' => 'id',
+      'label' => 'name',
+    ),
+    'entity class' => 'MusicianEntity',
+    'controller class' => 'MusicianEntityController',
+    'module' => 'setlist',
+    'uri callback' => 'entity_class_uri',
+    'views controller class' => 'EntityDefaultViewsController',
+    'admin ui' => array(
+      'path' => 'admin/musicians',
+      'controller class' => 'EntityDefaultUIController',
+    ),
+  );
+
+  $info['instrument'] = array(
+    'label' => t('Instrument'),
+    'base table' => 'setlist_instruments',
+    'access callback' => 'instrument_access_callback',
+    'entity keys' => array(
+      'id' => 'id',
+      'label' => 'name',
+    ),
+    'entity class' => 'InstrumentEntity',
+    'controller class' => 'InstrumentEntityController',
+    'module' => 'setlist',
+    'uri callback' => 'entity_class_uri',
+    'views controller class' => 'EntityDefaultViewsController',
+    'admin ui' => array(
+      'path' => 'admin/instruments',
+      'controller class' => 'EntityDefaultUIController',
+    ),
+  );
+
+  $info['song'] = array(
+    'label' => t('Song'),
+    'base table' => 'setlist_songs',
+    'entity keys' => array(
+      'id' => 'id',
+      'label' => 'name',
+    ),
+    'entity class' => 'SongEntity',
+    'controller class' => 'SongEntityController',
+    'module' => 'setlist',
+    'access callback' => 'song_access_callback',
+    'uri callback' => 'entity_class_uri',
+    'admin ui' => array(
+      'path' => 'admin/songs',
+      'controller class' => 'EntityDefaultUIController',
+    ),
+    'views controller class' => 'EntityDefaultViewsController',
+    'fieldable' => TRUE,
+    'bundles' => array(
+      'song' => array(
+        'label' => t('Song'),
+        'admin' => array(
+          'path' => 'admin/songs',
+        ),
+      ),
+    ),
+  );
+
+  return $info;
+}
+
+/**
  * Access callback for song entities.
  */
 function song_access_callback($op, $song = NULL, $account = NULL) {
@@ -75,13 +151,11 @@ class SongEntityController extends EntityAPIController {
 
     $build = parent::buildContent($entity, $view_mode, $langcode, $content);
 
-    dpm($entity);
-    
     // Our additions to the $build render array
     $build['genre'] = array(
       '#type' => 'markup',
       '#markup' => check_plain($entity->genre),
-      '#prefix' => '<div class="song-genre">',
+      '#prefix' => '<p>Genre: ',
       '#suffix' => '</div>',
     );
     $build['year'] = array(
